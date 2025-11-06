@@ -7,5 +7,6 @@ package team5937.lib.subsystem.angular;
 public enum AngularIOOutputMode {
     kNeutral,
     kClosedLoop,
-    kOpenLoop
+    kOpenLoop,
+    kVelocity
 }

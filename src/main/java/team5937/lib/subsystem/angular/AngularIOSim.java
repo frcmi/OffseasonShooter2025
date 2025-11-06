@@ -10,7 +10,6 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.units.VoltageUnit;
 import edu.wpi.first.units.measure.*;
 import edu.wpi.first.wpilibj.RobotController;
 import team5937.lib.sim.CurrentDrawCalculatorSim;
@@ -22,7 +21,8 @@ import java.util.function.Supplier;
 
 public class AngularIOSim implements AngularIO {
     private final PivotSim pivot;
-    private final ProfiledPIDController controller;
+    private final ProfiledPIDController posController;
+    private final ProfiledPIDController velController;
 
     private final AngularIOSimConfig deviceConfig;
 
@@ -30,7 +30,8 @@ public class AngularIOSim implements AngularIO {
     private final DeviceConnectedStatus[] deviceConnectedStatuses = new DeviceConnectedStatus[] {};
 
     private AngularIOOutputMode outputMode = kNeutral;
-    private Optional<Angle> goal = Optional.empty();
+    private Optional<Angle> goalPos = Optional.empty();
+    private Optional<AngularVelocity> goalVel = Optional.empty();
     private Optional<Double> dutyCycle = Optional.empty();
 
     private Current supplyCurrent = Amps.of(0.0);
@@ -56,7 +57,7 @@ public class AngularIOSim implements AngularIO {
                         config.getPhysicalMaxAngle().in(Radians),
                         realAngleFromSubsystemAngleZero,
                         config.getResetAngle().in(Radians));
-        controller =
+        posController =
                 new ProfiledPIDController(
                         config.getKP(),
                         config.getKI(),
@@ -64,6 +65,13 @@ public class AngularIOSim implements AngularIO {
                         new TrapezoidProfile.Constraints(
                                 config.getCruiseVelocity().in(RadiansPerSecond),
                                 config.getAcceleration().in(RadiansPerSecondPerSecond)));
+        velController = new ProfiledPIDController(
+            config.getKP(), 
+            config.getKI(), 
+            config.getKD(), new TrapezoidProfile.Constraints(
+                config.getAcceleration().in(RadiansPerSecondPerSecond),
+                1e9
+            ));
 
         currentDrawCalculatorSim.registerCurrentDraw(() -> supplyCurrent);
     }
@@ -72,15 +80,16 @@ public class AngularIOSim implements AngularIO {
     public void updateInputs(AngularIOInputs inputs) {
         armLength.ifPresent(length -> pivot.setArmLength(length.get()));
 
-        inputs.goal = this.goal.orElse(Radians.of(0.0));
+        inputs.goalPos = this.goalPos.orElse(Radians.of(0.0));
+        inputs.goalVel = this.goalVel.orElse(RadiansPerSecond.of(0.0));
         switch (outputMode) {
             case kClosedLoop ->
                     inputs.appliedVolts =
                             Volts.of(
                                     MathUtil.clamp(
-                                            controller.calculate(
+                                            posController.calculate(
                                                             pivot.getAngleRads(),
-                                                            goal.orElse(Radians.of(0.0))
+                                                            goalPos.orElse(Radians.of(0.0))
                                                                     .in(Radians))
                                                     * RobotController.getBatteryVoltage(),
                                             -12.0,
@@ -88,6 +97,14 @@ public class AngularIOSim implements AngularIO {
             case kOpenLoop ->
                     inputs.appliedVolts =
                             Volts.of(dutyCycle.orElse(0.0) * RobotController.getBatteryVoltage());
+            case kVelocity -> {
+                    double goalVelValue = goalVel.orElse(RadiansPerSecond.of(0.0)).in(RadiansPerSecond);
+                    inputs.appliedVolts = Volts.of(MathUtil.clamp(
+                    velController.calculate(
+                        pivot.getVelocityRadPerSec(), 
+                        goalVelValue
+                    ) + goalVelValue * deviceConfig.getKV(), -12.0, 12.0));
+            }
             case kNeutral -> inputs.appliedVolts = Volts.of(0.0);
         }
         pivot.setInput(inputs.appliedVolts.in(Volts));
@@ -112,15 +129,26 @@ public class AngularIOSim implements AngularIO {
 
     @Override
     public void setAngle(Angle angle) {
-        controller.reset(angle.in(Radians), velocity.in(RadiansPerSecond));
-        this.goal = Optional.of(angle);
+        posController.reset(angle.in(Radians), velocity.in(RadiansPerSecond));
+        this.goalPos = Optional.of(angle);
+        this.goalVel = Optional.empty();
+        this.dutyCycle = Optional.empty();
+        outputMode = kClosedLoop;
+    }
+
+    @Override
+    public void setVelocity(AngularVelocity angVel) {
+        velController.reset(angVel.in(RadiansPerSecond));
+        this.goalPos = Optional.empty();
+        this.goalVel = Optional.of(angVel);
         this.dutyCycle = Optional.empty();
         outputMode = kClosedLoop;
     }
 
     @Override
     public void setOpenLoop(double dutyCycle) {
-        this.goal = Optional.empty();
+        this.goalPos = Optional.empty();
+        this.goalVel = Optional.empty();
         this.dutyCycle = Optional.of(dutyCycle);
         outputMode = kOpenLoop;
     }
@@ -132,12 +160,14 @@ public class AngularIOSim implements AngularIO {
     }
 
     @Override
-    public void setPID(double kP, double kI, double kD) {
+    public void setPIDV(double kP, double kI, double kD, double kV) {
         deviceConfig.setKP(kP);
         deviceConfig.setKI(kI);
         deviceConfig.setKD(kD);
+        deviceConfig.setKV(kV);
 
-        controller.setPID(kP, kI, kD);
+        posController.setPID(kP, kI, kD);
+        velController.setPID(kP, kI, kD);
     }
 
     @Override
@@ -145,10 +175,14 @@ public class AngularIOSim implements AngularIO {
         deviceConfig.setCruiseVelocity(cruiseVelocity);
         deviceConfig.setAcceleration(acceleration);
 
-        controller.setConstraints(
+        posController.setConstraints(
                 new TrapezoidProfile.Constraints(
                         cruiseVelocity.in(RadiansPerSecond),
                         acceleration.in(RadiansPerSecondPerSecond)));
+        velController.setConstraints(
+                new TrapezoidProfile.Constraints(
+                        acceleration.in(RadiansPerSecondPerSecond),
+                        1e9));
     }
 
     @Override

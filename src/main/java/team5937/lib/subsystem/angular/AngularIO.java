@@ -31,12 +31,15 @@ public interface AngularIO {
         public double[] motorTemperatures = {};
         public DeviceConnectedStatus[] deviceConnectedStatuses = {};
 
-        public Angle goal = Radians.of(0.0);
+        public Angle goalPos = Radians.of(0.0);
+        public AngularVelocity goalVel = RadiansPerSecond.of(0.0);
     }
 
     default void setAngle(Angle angle) {}
 
     default void setOpenLoop(double dutyCycle) {}
+
+    default void setVelocity(AngularVelocity velocity) {}
 
     default void stop() {}
 
@@ -44,7 +47,7 @@ public interface AngularIO {
 
     default void resetAngle(Angle angle) {}
 
-    default void setPID(double kP, double kI, double kD) {}
+    default void setPIDV(double kP, double kI, double kD, double kV) {}
 
     default void setConstraints(AngularVelocity cruiseVelocity, AngularAcceleration acceleration) {}
 

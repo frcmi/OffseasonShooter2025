@@ -33,6 +33,7 @@ public class AngularSubsystem extends RegisteredSubsystem {
     private LoggedTunableNumber kPTunable;
     private LoggedTunableNumber kITunable;
     private LoggedTunableNumber kDTunable;
+    private LoggedTunableNumber kVTunable;
     private LoggedTunableNumber cruiseVelocityTunable;
     private LoggedTunableNumber accelerationTunable;
     private LoggedTunableNumber positionToleranceTunable;
@@ -72,6 +73,9 @@ public class AngularSubsystem extends RegisteredSubsystem {
         kDTunable =
                 new LoggedTunableNumber(
                         String.format("AngularSubsystems/%s/KD", logKey), config.getKD());
+        kVTunable =
+                new LoggedTunableNumber(
+                        String.format("AngularSubsystems/%s/KV", logKey), config.getKV());
         cruiseVelocityTunable =
                 new LoggedTunableNumber(
                         String.format(
@@ -105,11 +109,13 @@ public class AngularSubsystem extends RegisteredSubsystem {
                     config.setKP(kPTunable.get());
                     config.setKI(kITunable.get());
                     config.setKD(kDTunable.get());
-                    io.setPID(kPTunable.get(), kITunable.get(), kDTunable.get());
+                    config.setKV(kVTunable.get());
+                    io.setPIDV(kPTunable.get(), kITunable.get(), kDTunable.get(), kVTunable.get());
                 },
                 kPTunable,
                 kITunable,
-                kDTunable);
+                kDTunable,
+                kVTunable);
         LoggedTunableNumber.ifChanged(
                 hashCode(),
                 () -> {
@@ -135,7 +141,7 @@ public class AngularSubsystem extends RegisteredSubsystem {
         isAtAngle =
                 outputMode != kOpenLoop
                         && MathUtil.isNear(
-                                inputs.goal.in(Radians),
+                                inputs.goalPos.in(Radians),
                                 inputs.angle.in(Radians),
                                 config.getPositionTolerance().in(Radians))
                         && MathUtil.isNear(
@@ -149,7 +155,11 @@ public class AngularSubsystem extends RegisteredSubsystem {
         Logger.recordOutput(
                 String.format("AngularSubsystems/%s/AngleDegrees", logKey), getAngle().in(Degrees));
         Logger.recordOutput(
-                String.format("AngularSubsystems/%s/GoalDegrees", logKey), getGoal().in(Degrees));
+                String.format("AngularSubsystems/%s/GoalAngleDegrees", logKey), getGoalPos().in(Degrees));
+        Logger.recordOutput(
+                String.format("AngularSubsystems/%s/VelRad_s", logKey), getAngle().in(Degrees));
+        Logger.recordOutput(
+                String.format("AngularSubsystems/%s/GoalVelRad_s", logKey), getGoalVelocity().in(RadiansPerSecond));
 
         if (!Arrays.stream(inputs.deviceConnectedStatuses)
                 .allMatch(DeviceConnectedStatus::isConnected)) {
@@ -174,9 +184,20 @@ public class AngularSubsystem extends RegisteredSubsystem {
                 sequence(runOnce(() -> io.setAngle(angle)), idle()), setOutputMode(kClosedLoop));
     }
 
+    public Command velocity(AngularVelocity angVel) {
+        // Only set angle once, run until canceled.
+        return parallel(
+                sequence(runOnce(() -> io.setVelocity(angVel)), idle()), setOutputMode(kVelocity));
+    }
+
     public Command angle(Supplier<Angle> angle) {
         // Set angle every loop, run until canceled.
         return parallel(run(() -> io.setAngle(angle.get())), setOutputMode(kClosedLoop));
+    }
+
+    public Command velocity(Supplier<AngularVelocity> angVel) {
+        // Set angle every loop, run until canceled.
+        return parallel(run(() -> io.setVelocity(angVel.get())), setOutputMode(kVelocity));
     }
 
     public Command openLoop(double dutyCycle) {
@@ -246,12 +267,16 @@ public class AngularSubsystem extends RegisteredSubsystem {
         return inputs.angle;
     }
 
-    public Angle getGoal() {
-        return inputs.goal;
+    public Angle getGoalPos() {
+        return inputs.goalPos;
     }
 
     public AngularVelocity getVelocity() {
         return inputs.velocity;
+    }
+
+    public AngularVelocity getGoalVelocity() {
+        return inputs.goalVel;
     }
 
     public AngularAcceleration getAcceleration() {

@@ -39,7 +39,8 @@ public class AngularIOTalonFX implements AngularIO {
     private final StatusSignal<AngularAcceleration> acceleration;
     private final List<StatusSignal<Temperature>> motorTemperatures;
 
-    private final MotionMagicVoltage motionMagic;
+    private final MotionMagicVoltage motionMagicPos; 
+    private final MotionMagicVelocityVoltage motionMagicVel; 
     private final DutyCycleOut dutyCycleOut;
 
     private final AngularIOTalonFXConfig deviceConfig;
@@ -48,7 +49,8 @@ public class AngularIOTalonFX implements AngularIO {
             new Alert("Configurations for AngularSubsystem not applied!", Alert.AlertType.kError);
 
     private AngularIOOutputMode outputMode = kNeutral;
-    private Optional<Angle> goal = Optional.empty();
+    private Optional<Angle> goalPos = Optional.empty();
+    private Optional<AngularVelocity> goalVel = Optional.empty();
 
     public AngularIOTalonFX(AngularIOTalonFXConfig config) {
         this.deviceConfig = config;
@@ -90,11 +92,12 @@ public class AngularIOTalonFX implements AngularIO {
                                                                         kMaxTimeoutMS))));
         configurationsNotAppliedAlert.set(!applySuccess.get());
 
-        motionMagic =
+        motionMagicPos =
                 new MotionMagicVoltage(
                         Rotations.of(
                                 config.getResetAngle().in(Radians)
                                         / config.getOutputAnglePerOutputRotation().in(Radians)));
+        motionMagicVel = new MotionMagicVelocityVoltage(RotationsPerSecond.of(0.0));
         dutyCycleOut = new DutyCycleOut(0.0);
 
         // Set signals.
@@ -118,6 +121,8 @@ public class AngularIOTalonFX implements AngularIO {
                 deviceConfig.getKI() * deviceConfig.getOutputAnglePerOutputRotation().in(Radians);
         configuration.Slot0.kD =
                 deviceConfig.getKD() * deviceConfig.getOutputAnglePerOutputRotation().in(Radians);
+        configuration.Slot0.kV =
+                deviceConfig.getKV() * deviceConfig.getOutputAnglePerOutputRotation().in(Radians);
 
         configuration.MotionMagic.MotionMagicCruiseVelocity =
                 deviceConfig.getCruiseVelocity().in(RadiansPerSecond)
@@ -219,23 +224,36 @@ public class AngularIOTalonFX implements AngularIO {
         inputs.neutralMode = deviceConfig.getNeutralMode();
 
         inputs.IOOutputMode = this.outputMode;
-        inputs.goal = this.goal.orElse(Radians.of(0.0));
+        inputs.goalPos = this.goalPos.orElse(Radians.of(0.0));
+        inputs.goalVel = this.goalVel.orElse(RadiansPerSecond.of(0.0));
     }
 
     @Override
     public void setAngle(Angle angle) {
         master.setControl(
-                motionMagic.withPosition(
+                motionMagicPos.withPosition(
                         angle.in(Radians)
                                 / deviceConfig.getOutputAnglePerOutputRotation().in(Radians)));
-        goal = Optional.of(angle);
+        goalPos = Optional.of(angle);
+        goalVel = Optional.empty();
         outputMode = kClosedLoop;
+    }
+
+    @Override
+    public void setVelocity(AngularVelocity angVel) {
+        master.setControl(
+                motionMagicVel.withVelocity(
+                        angVel.in(RadiansPerSecond)
+                                / deviceConfig.getOutputAnglePerOutputRotation().in(Radians)));
+        goalPos = Optional.empty();
+        goalVel = Optional.of(angVel);
+        outputMode = kVelocity;
     }
 
     @Override
     public void setOpenLoop(double dutyCycle) {
         master.setControl(dutyCycleOut.withOutput(dutyCycle));
-        goal = Optional.empty();
+        goalPos = Optional.empty();
         outputMode = kOpenLoop;
     }
 
@@ -259,14 +277,16 @@ public class AngularIOTalonFX implements AngularIO {
     }
 
     @Override
-    public void setPID(double kP, double kI, double kD) {
+    public void setPIDV(double kP, double kI, double kD, double kV) {
         deviceConfig.setKP(kP);
         deviceConfig.setKI(kI);
         deviceConfig.setKD(kD);
+        deviceConfig.setKV(kV);
 
         masterConfig.Slot0.kP = kP * deviceConfig.getOutputAnglePerOutputRotation().in(Radians);
         masterConfig.Slot0.kI = kI * deviceConfig.getOutputAnglePerOutputRotation().in(Radians);
         masterConfig.Slot0.kD = kD * deviceConfig.getOutputAnglePerOutputRotation().in(Radians);
+        masterConfig.Slot0.kV = kV * deviceConfig.getOutputAnglePerOutputRotation().in(Radians);
         master.getConfigurator().apply(masterConfig, 0.0);
     }
 

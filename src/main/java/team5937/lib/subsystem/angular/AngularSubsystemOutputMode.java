@@ -8,5 +8,6 @@ public enum AngularSubsystemOutputMode {
     kClosedLoop,
     kOpenLoop,
     kHoldAtCall,
-    kHoldAtGoal
+    kHoldAtGoal,
+    kVelocity
 }

@@ -31,6 +31,7 @@ public class AngularIOTalonFXConfig {
     @Builder.Default @Setter private double kP = 0.0;
     @Builder.Default @Setter private double kI = 0.0;
     @Builder.Default @Setter private double kD = 0.0;
+    @Builder.Default @Setter private double kV = 0.0;
     @Builder.Default @Setter private AngularVelocity cruiseVelocity = RotationsPerSecond.of(0.0);
 
     @Builder.Default @Setter
