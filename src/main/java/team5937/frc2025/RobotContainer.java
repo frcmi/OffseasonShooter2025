@@ -84,11 +84,11 @@ public class RobotContainer extends VirtualSubsystem {
                 // Real robot, instantiate hardware IO implementations
                 drive =
                         new Drive(
-                                new GyroIO() {},
-                                new ModuleIOSim(TunerConstants.FrontLeft),
-                                new ModuleIOSim(TunerConstants.FrontRight),
-                                new ModuleIOSim(TunerConstants.BackLeft),
-                                new ModuleIOSim(TunerConstants.BackRight));
+                                new GyroIOPigeon2(),
+                                new ModuleIOTalonFX(TunerConstants.FrontLeft),
+                                new ModuleIOTalonFX(TunerConstants.FrontRight),
+                                new ModuleIOTalonFX(TunerConstants.BackLeft),
+                                new ModuleIOTalonFX(TunerConstants.BackRight));
                 break;
 
             case kSim:
@@ -96,10 +96,10 @@ public class RobotContainer extends VirtualSubsystem {
                 drive =
                 new Drive(
                         new GyroIO() {},
-                        new ModuleIOSim(TunerConstants.FrontLeft),
-                        new ModuleIOSim(TunerConstants.FrontRight),
-                        new ModuleIOSim(TunerConstants.BackLeft),
-                        new ModuleIOSim(TunerConstants.BackRight));
+                        new ModuleIOSim(TunerConstants.FrontLeft, currentDrawCalculatorSim),
+                        new ModuleIOSim(TunerConstants.FrontRight, currentDrawCalculatorSim),
+                        new ModuleIOSim(TunerConstants.BackLeft, currentDrawCalculatorSim),
+                        new ModuleIOSim(TunerConstants.BackRight, currentDrawCalculatorSim));
 
                 break;
 

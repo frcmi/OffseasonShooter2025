@@ -18,6 +18,8 @@ import org.littletonrobotics.junction.Logger;
 public class CurrentDrawCalculatorSim extends VirtualSubsystem {
     private final List<Supplier<Current>> subsystemCurrentDraws = new ArrayList<>();
 
+    double batteryVoltage = 12.0f;
+
     @SafeVarargs
     public final void registerCurrentDraw(Supplier<Current>... voltageDraws) {
         Collections.addAll(subsystemCurrentDraws, voltageDraws);
@@ -30,10 +32,14 @@ public class CurrentDrawCalculatorSim extends VirtualSubsystem {
                 subsystemCurrentDraws.stream()
                         .mapToDouble(current -> current.get().in(Amps))
                         .toArray();
-
-        RoboRioSim.setVInVoltage(BatterySim.calculateDefaultBatteryLoadedVoltage(draws));
+        double newVoltage = BatterySim.calculateDefaultBatteryLoadedVoltage(draws);
+        batteryVoltage = batteryVoltage * 0.95 + newVoltage * 0.05; // Simple low-pass filter
+        
+        RoboRioSim.setVInVoltage(batteryVoltage);
 
         Logger.recordOutput(
                 "CurrentDrawCalculatorSim/BatteryVoltage", RobotController.getBatteryVoltage());
+        Logger.recordOutput(
+                "CurrentDrawCalculatorSim/CurrentDraws", draws);
     }
 }

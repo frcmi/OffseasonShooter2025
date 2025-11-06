@@ -15,6 +15,7 @@ import edu.wpi.first.units.measure.*;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
+import team5937.lib.sim.CurrentDrawCalculatorSim;
 
 /**
  * Physics sim implementation of module IO. The sim models are configured using a set of module
@@ -48,9 +49,12 @@ public class ModuleIOSim implements ModuleIO {
     private double driveAppliedVolts = 0.0;
     private double turnAppliedVolts = 0.0;
 
+    Current supplyTurnCurrent = Amps.of(0.0);
+    Current supplyDriveCurrent = Amps.of(0.0);
+
     public ModuleIOSim(
             SwerveModuleConstants<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration>
-                    constants) {
+                    constants, CurrentDrawCalculatorSim currentDrawCalculatorSim) {
         // Create drive and turn sim models
         driveSim =
                 new DCMotorSim(
@@ -69,6 +73,8 @@ public class ModuleIOSim implements ModuleIO {
 
         // Enable wrapping for turn PID
         turnController.enableContinuousInput(-Math.PI, Math.PI);
+
+        currentDrawCalculatorSim.registerCurrentDraw(() -> supplyDriveCurrent.plus(supplyTurnCurrent));
     }
 
     @Override
@@ -113,6 +119,10 @@ public class ModuleIOSim implements ModuleIO {
         inputs.odometryTimestamps = new double[] {Timer.getFPGATimestamp()};
         inputs.odometryDrivePositionsRad = new double[] {inputs.drivePositionRad};
         inputs.odometryTurnPositions = new Rotation2d[] {inputs.turnPosition};
+
+        // Update current draw
+        supplyDriveCurrent = Amps.of(driveSim.getCurrentDrawAmps() * Math.abs(inputs.driveAppliedVolts)/RobotController.getBatteryVoltage());
+        supplyTurnCurrent = Amps.of(turnSim.getCurrentDrawAmps() * Math.abs(inputs.turnAppliedVolts)/RobotController.getBatteryVoltage());
     }
 
     @Override

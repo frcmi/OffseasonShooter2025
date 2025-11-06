@@ -10,6 +10,7 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.units.VoltageUnit;
 import edu.wpi.first.units.measure.*;
 import edu.wpi.first.wpilibj.RobotController;
 import team5937.lib.sim.CurrentDrawCalculatorSim;
@@ -32,7 +33,7 @@ public class AngularIOSim implements AngularIO {
     private Optional<Angle> goal = Optional.empty();
     private Optional<Double> dutyCycle = Optional.empty();
 
-    private Current statorCurrent = Amps.of(0.0);
+    private Current supplyCurrent = Amps.of(0.0);
 
     private Optional<Supplier<Rotation2d>> realAngleFromSubsystemAngleZero = Optional.empty();
     private Optional<Supplier<Distance>> armLength = Optional.empty();
@@ -64,7 +65,7 @@ public class AngularIOSim implements AngularIO {
                                 config.getCruiseVelocity().in(RadiansPerSecond),
                                 config.getAcceleration().in(RadiansPerSecondPerSecond)));
 
-        currentDrawCalculatorSim.registerCurrentDraw(() -> statorCurrent);
+        currentDrawCalculatorSim.registerCurrentDraw(() -> supplyCurrent);
     }
 
     @Override
@@ -94,9 +95,9 @@ public class AngularIOSim implements AngularIO {
 
         inputs.angle = Radians.of(pivot.getAngleRads());
 
-        inputs.supplyCurrent = Amps.of(pivot.getCurrentDrawAmps());
+        inputs.supplyCurrent = Amps.of(pivot.getCurrentDrawAmps() * inputs.appliedVolts.abs(Volts)/RobotController.getBatteryVoltage());
         inputs.statorCurrent = Amps.of(pivot.getCurrentDrawAmps());
-        this.statorCurrent = inputs.statorCurrent;
+        this.supplyCurrent = inputs.supplyCurrent;
 
         inputs.velocity = RadiansPerSecond.of(pivot.getVelocityRadPerSec());
         this.velocity = inputs.velocity;

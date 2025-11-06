@@ -32,7 +32,7 @@ public class LinearIOSim implements LinearIO {
     private Optional<Distance> goal = Optional.empty();
     private Optional<Double> dutyCycle = Optional.empty();
 
-    private Current statorCurrent = Amps.of(0.0);
+    private Current supplyCurrent = Amps.of(0.0);
 
     private Optional<Supplier<Rotation2d>> angle = Optional.empty();
 
@@ -63,7 +63,7 @@ public class LinearIOSim implements LinearIO {
                                 config.getCruiseVelocity().in(MetersPerSecond),
                                 config.getAcceleration().in(MetersPerSecondPerSecond)));
 
-        currentDrawCalculatorSim.registerCurrentDraw(() -> statorCurrent);
+        currentDrawCalculatorSim.registerCurrentDraw(() -> supplyCurrent);
     }
 
     @Override
@@ -90,9 +90,9 @@ public class LinearIOSim implements LinearIO {
 
         inputs.length = Meters.of(linearExtension.getPositionMeters());
 
-        inputs.supplyCurrent = Amps.of(linearExtension.getCurrentDrawAmps());
+        inputs.supplyCurrent = Amps.of(linearExtension.getCurrentDrawAmps() * inputs.appliedVolts.abs(Volts)/RobotController.getBatteryVoltage());
         inputs.statorCurrent = Amps.of(linearExtension.getCurrentDrawAmps());
-        this.statorCurrent = inputs.statorCurrent;
+        this.supplyCurrent = inputs.supplyCurrent;
 
         inputs.velocity = MetersPerSecond.of(linearExtension.getVelocityMetersPerSecond());
         this.velocity = inputs.velocity;
