@@ -11,6 +11,7 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.*;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.hardware.core.CoreTalonFX;
+import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.units.measure.*;
 import edu.wpi.first.wpilibj.Alert;
@@ -115,6 +116,8 @@ public class LinearIOTalonFX implements LinearIO {
         configuration.Slot0.kP = deviceConfig.getKP();
         configuration.Slot0.kI = deviceConfig.getKI();
         configuration.Slot0.kD = deviceConfig.getKD();
+        masterConfig.Slot0.GravityType = GravityTypeValue.Elevator_Static;
+        masterConfig.Slot0.kG = deviceConfig.getKG();
 
         configuration.MotionMagic.MotionMagicCruiseVelocity =
                 deviceConfig.getCruiseVelocity().in(MetersPerSecond)
@@ -256,14 +259,17 @@ public class LinearIOTalonFX implements LinearIO {
     }
 
     @Override
-    public void setPID(double kP, double kI, double kD) {
+    public void setPIDG(double kP, double kI, double kD, double kG) {
         deviceConfig.setKP(kP);
         deviceConfig.setKI(kI);
         deviceConfig.setKD(kD);
+        deviceConfig.setKG(kG);
 
         masterConfig.Slot0.kP = kP;
         masterConfig.Slot0.kI = kI;
         masterConfig.Slot0.kD = kD;
+        masterConfig.Slot0.GravityType = GravityTypeValue.Elevator_Static;
+        masterConfig.Slot0.kG = kG;
         master.getConfigurator().apply(masterConfig, 0.0);
     }
 

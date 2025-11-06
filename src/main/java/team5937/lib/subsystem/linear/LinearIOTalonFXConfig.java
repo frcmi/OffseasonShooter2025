@@ -32,6 +32,7 @@ public class LinearIOTalonFXConfig {
     @Builder.Default @Setter private double kP = 0.0;
     @Builder.Default @Setter private double kI = 0.0;
     @Builder.Default @Setter private double kD = 0.0;
+    @Builder.Default @Setter private double kG = 0.0;
     @Builder.Default @Setter private LinearVelocity cruiseVelocity = MetersPerSecond.of(0.0);
 
     @Builder.Default @Setter

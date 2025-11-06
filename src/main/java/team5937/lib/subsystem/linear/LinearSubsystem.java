@@ -32,6 +32,7 @@ public class LinearSubsystem extends RegisteredSubsystem {
     private LoggedTunableNumber kPTunable;
     private LoggedTunableNumber kITunable;
     private LoggedTunableNumber kDTunable;
+    private LoggedTunableNumber kGTunable;
     private LoggedTunableNumber cruiseVelocityTunable;
     private LoggedTunableNumber accelerationTunable;
     private LoggedTunableNumber positionToleranceTunable;
@@ -71,6 +72,9 @@ public class LinearSubsystem extends RegisteredSubsystem {
         kDTunable =
                 new LoggedTunableNumber(
                         String.format("LinearSubsystems/%s/KD", logKey), config.getKD());
+        kGTunable =
+                new LoggedTunableNumber(
+                        String.format("LinearSubsystems/%s/KG", logKey), config.getKG());
         cruiseVelocityTunable =
                 new LoggedTunableNumber(
                         String.format("LinearSubsystems/%s/CruiseVelocityInchesPerSecond", logKey),
@@ -102,11 +106,13 @@ public class LinearSubsystem extends RegisteredSubsystem {
                     config.setKP(kPTunable.get());
                     config.setKI(kITunable.get());
                     config.setKD(kDTunable.get());
-                    io.setPID(kPTunable.get(), kITunable.get(), kDTunable.get());
+                    config.setKG(kGTunable.get());
+                    io.setPIDG(kPTunable.get(), kITunable.get(), kDTunable.get(), kGTunable.get());
                 },
                 kPTunable,
                 kITunable,
-                kDTunable);
+                kDTunable,
+                kGTunable);
         LoggedTunableNumber.ifChanged(
                 hashCode(),
                 () -> {

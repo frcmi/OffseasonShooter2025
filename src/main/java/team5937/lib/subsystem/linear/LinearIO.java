@@ -43,7 +43,7 @@ public interface LinearIO {
 
     default void resetLength(Distance length) {}
 
-    default void setPID(double kP, double kI, double kD) {}
+    default void setPIDG(double kP, double kI, double kD, double kG) {}
 
     default void setConstraints(LinearVelocity cruiseVelocity, LinearAcceleration acceleration) {}
 
