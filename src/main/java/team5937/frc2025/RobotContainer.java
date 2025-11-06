@@ -1,6 +1,10 @@
 package team5937.frc2025;
 
 import static edu.wpi.first.units.Units.*;
+import static team5937.frc2025.subsystems.vision.VisionConstants.camera0Name;
+import static team5937.frc2025.subsystems.vision.VisionConstants.camera1Name;
+import static team5937.frc2025.subsystems.vision.VisionConstants.robotToCamera0;
+import static team5937.frc2025.subsystems.vision.VisionConstants.robotToCamera1;
 
 import com.ctre.phoenix6.CANBus;
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -26,6 +30,10 @@ import team5937.frc2025.constants.RobotConstants;
 import team5937.frc2025.constants.TunerConstants;
 import team5937.frc2025.constants.VisionConstants;
 import team5937.frc2025.subsystems.drive.*;
+import team5937.frc2025.subsystems.vision.Vision;
+import team5937.frc2025.subsystems.vision.VisionIO;
+import team5937.frc2025.subsystems.vision.VisionIOLimelight;
+import team5937.frc2025.subsystems.vision.VisionIOPhotonVisionSim;
 import team5937.lib.alliancecolor.AllianceChecker;
 import team5937.lib.controller.Joysticks;
 import team5937.lib.sim.CurrentDrawCalculatorSim;
@@ -53,6 +61,7 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
  */
 public class RobotContainer extends VirtualSubsystem {
     private final Drive drive;
+    private final Vision vision;
 
     private final RobotSuperstructure superstructure;
 
@@ -96,6 +105,11 @@ public class RobotContainer extends VirtualSubsystem {
                                 new ModuleIOTalonFX(TunerConstants.FrontRight),
                                 new ModuleIOTalonFX(TunerConstants.BackLeft),
                                 new ModuleIOTalonFX(TunerConstants.BackRight));
+                vision = new Vision(
+                        drive::addVisionMeasurement,
+                        new VisionIOLimelight(camera0Name, drive::getRotation),
+                        new VisionIOLimelight(camera1Name, drive::getRotation)
+                );
                 break;
 
             case kSim:
@@ -107,12 +121,18 @@ public class RobotContainer extends VirtualSubsystem {
                         new ModuleIOSim(TunerConstants.FrontRight, currentDrawCalculatorSim),
                         new ModuleIOSim(TunerConstants.BackLeft, currentDrawCalculatorSim),
                         new ModuleIOSim(TunerConstants.BackRight, currentDrawCalculatorSim));
+                vision =
+                        new Vision(
+                                drive::addVisionMeasurement,
+                                new VisionIOPhotonVisionSim(camera0Name, robotToCamera0, drive::getPose),
+                                new VisionIOPhotonVisionSim(camera1Name, robotToCamera1, drive::getPose));
 
                 break;
 
             default:
                 // Replayed robot, disable IO implementations
                 drive = new Drive();
+                vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
                 break;
         }
 
