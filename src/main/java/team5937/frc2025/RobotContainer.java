@@ -2,10 +2,12 @@ package team5937.frc2025;
 
 import static edu.wpi.first.units.Units.*;
 
+import com.ctre.phoenix6.CANBus;
 import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
@@ -27,10 +29,13 @@ import team5937.frc2025.subsystems.drive.*;
 import team5937.lib.alliancecolor.AllianceChecker;
 import team5937.lib.controller.Joysticks;
 import team5937.lib.sim.CurrentDrawCalculatorSim;
+import team5937.lib.sim.CustomDCMotor;
 import team5937.lib.subsystem.VirtualSubsystem;
 import team5937.lib.subsystem.angular.AngularIOSim;
+import team5937.lib.subsystem.angular.AngularIOSimConfig;
 import team5937.lib.subsystem.angular.AngularIOTalonFX;
 import team5937.lib.subsystem.angular.AngularSubsystem;
+import team5937.lib.subsystem.angular.AngularSubsystemConfig;
 import team5937.lib.subsystem.linear.LinearIOSim;
 import team5937.lib.subsystem.linear.LinearIOTalonFX;
 import team5937.lib.subsystem.linear.LinearSubsystem;
@@ -78,6 +83,8 @@ public class RobotContainer extends VirtualSubsystem {
     private final Alert controllerOneAlert =
             new Alert("Controller 1 is unplugged!", Alert.AlertType.kWarning);
 
+    private final AngularSubsystem flywheelSim;
+
     public RobotContainer() {
         switch (ModeConstants.kCurrentMode) {
             case kReal:
@@ -110,6 +117,22 @@ public class RobotContainer extends VirtualSubsystem {
         }
 
         superstructure = new RobotSuperstructure();
+
+        AngularIOSim sim = new AngularIOSim(AngularIOSimConfig.builder()
+                                                        .motor(DCMotor.getKrakenX60(1))
+                                                        .moi(KilogramSquareMeters.of(0.0046))
+                                                        .kP(0.11)
+                                                        .kV(0.019)
+                                                        .build(), 
+                                                        currentDrawCalculatorSim);
+        flywheelSim = new AngularSubsystem(sim, AngularSubsystemConfig.builder()
+                                                        .logKey("Flywheel")
+                                                        .bus(new CANBus("can"))
+                                                        .acceleration(RadiansPerSecondPerSecond.of(300))
+                                                        .kP(0.11)
+                                                        .kV(0.019)
+                                                        .build());
+        flywheelSim.setDefaultCommand(flywheelSim.openLoop(0.0));
 
         pointToPoint = new PointToPoint(drive, () -> 0.0, field);
         pointToPointReef = new PointToPointReef(pointToPoint, drive);
@@ -151,6 +174,8 @@ public class RobotContainer extends VirtualSubsystem {
                         controller::getLeftStickY,
                         () -> -controller.getLeftStickX(),
                         () -> -controller.getRightStickX()));
+
+        controller.buttonA.whileTrue(flywheelSim.velocity(RadiansPerSecond.of(300)));
     }
 
     @Override

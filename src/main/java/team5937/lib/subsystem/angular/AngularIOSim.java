@@ -16,6 +16,7 @@ import team5937.lib.sim.CurrentDrawCalculatorSim;
 import team5937.lib.sim.PivotSim;
 import team5937.lib.subsystem.DeviceConnectedStatus;
 
+import java.lang.StackWalker.Option;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -80,10 +81,10 @@ public class AngularIOSim implements AngularIO {
     public void updateInputs(AngularIOInputs inputs) {
         armLength.ifPresent(length -> pivot.setArmLength(length.get()));
 
-        inputs.goalPos = this.goalPos.orElse(Radians.of(0.0));
-        inputs.goalVel = this.goalVel.orElse(RadiansPerSecond.of(0.0));
+        Optional<Angle> posSet = Optional.empty();
+        Optional<AngularVelocity> velSet = Optional.empty();
         switch (outputMode) {
-            case kClosedLoop ->
+            case kClosedLoop -> {
                     inputs.appliedVolts =
                             Volts.of(
                                     MathUtil.clamp(
@@ -94,6 +95,9 @@ public class AngularIOSim implements AngularIO {
                                                     * RobotController.getBatteryVoltage(),
                                             -12.0,
                                             12.0));
+                    posSet = Optional.of(Radians.of(posController.getSetpoint().position));
+                    velSet = Optional.of(RadiansPerSecond.of(posController.getSetpoint().velocity));
+                }
             case kOpenLoop ->
                     inputs.appliedVolts =
                             Volts.of(dutyCycle.orElse(0.0) * RobotController.getBatteryVoltage());
@@ -103,13 +107,17 @@ public class AngularIOSim implements AngularIO {
                     velController.calculate(
                         pivot.getVelocityRadPerSec(), 
                         goalVelValue
-                    ) + goalVelValue * deviceConfig.getKV(), -12.0, 12.0));
+                    ) + velController.getSetpoint().position * deviceConfig.getKV(), -12.0, 12.0));
+                    velSet = Optional.of(RadiansPerSecond.of(velController.getSetpoint().position));
             }
             case kNeutral -> inputs.appliedVolts = Volts.of(0.0);
         }
         pivot.setInput(inputs.appliedVolts.in(Volts));
         pivot.update(kDt);
 
+        inputs.goalPos = posSet.orElse(Radians.of(0.0));
+        inputs.goalVel = velSet.orElse(RadiansPerSecond.of(0.0));
+        
         inputs.angle = Radians.of(pivot.getAngleRads());
 
         inputs.supplyCurrent = Amps.of(pivot.getCurrentDrawAmps() * inputs.appliedVolts.abs(Volts)/RobotController.getBatteryVoltage());
@@ -129,20 +137,21 @@ public class AngularIOSim implements AngularIO {
 
     @Override
     public void setAngle(Angle angle) {
-        posController.reset(angle.in(Radians), velocity.in(RadiansPerSecond));
         this.goalPos = Optional.of(angle);
         this.goalVel = Optional.empty();
         this.dutyCycle = Optional.empty();
+
+        posController.reset(pivot.getAngleRads(), velocity.in(RadiansPerSecond));
         outputMode = kClosedLoop;
     }
 
     @Override
     public void setVelocity(AngularVelocity angVel) {
-        velController.reset(angVel.in(RadiansPerSecond));
         this.goalPos = Optional.empty();
         this.goalVel = Optional.of(angVel);
         this.dutyCycle = Optional.empty();
-        outputMode = kClosedLoop;
+        velController.reset(this.velocity.in(RadiansPerSecond));
+        outputMode = kVelocity;
     }
 
     @Override

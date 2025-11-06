@@ -107,7 +107,7 @@ public class LinearIOSim implements LinearIO {
 
     @Override
     public void setLength(Distance length) {
-        controller.reset(length.in(Meters), velocity.in(MetersPerSecond));
+        controller.reset(linearExtension.getPositionMeters(), velocity.in(MetersPerSecond));
         this.goal = Optional.of(length);
         this.dutyCycle = Optional.empty();
         outputMode = kClosedLoop;
