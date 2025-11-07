@@ -18,7 +18,6 @@ import java.util.Optional;
 
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Voltage;
-import edu.wpi.first.units.measure.AngularVelocity;
 
 /** Add your docs here. */
 public class IntakeState implements StructSerializable{
@@ -39,7 +38,7 @@ public class IntakeState implements StructSerializable{
         type = "kNotTunable";
     }
 
-    public IntakeState(Voltage rollers, Angle pivot, String logKey) {
+    public IntakeState(Angle pivot, Voltage rollers, String logKey) {
         this.pivot = pivot;
         this.rollers = rollers;
         this.type = logKey;
@@ -65,6 +64,12 @@ public class IntakeState implements StructSerializable{
         return rollerVelocityTunable
             .map(loggedTunableNumber -> Volts.of(loggedTunableNumber.get())).orElse(rollers);
     }
+
+
+    // States
+    public static final IntakeState kStowed = new IntakeState(Degrees.of(97.5), Volts.of(0.0f), "kStowed");
+    public static final IntakeState kIntaking = new IntakeState(Degrees.of(-28.7), Volts.of(6.0f), "kIntaking");
+
 
     @SuppressWarnings("unused")
     public static final Struct<IntakeState> struct =
@@ -97,7 +102,7 @@ public class IntakeState implements StructSerializable{
                     Voltage rollers = Volts.of(bb.getDouble());
                     String type = StructUtils.readString(bb, 256);
 
-                    return new IntakeState(rollers, pivot, type);
+                    return new IntakeState(pivot, rollers, type);
                 }
 
                 @Override
