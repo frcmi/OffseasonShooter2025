@@ -41,7 +41,7 @@ public class AngularIOTalonFX implements AngularIO {
 
     private final MotionMagicVoltage motionMagicPos; 
     private final MotionMagicVelocityVoltage motionMagicVel; 
-    private final DutyCycleOut dutyCycleOut;
+    private final VoltageOut voltageOut;
 
     private final AngularIOTalonFXConfig deviceConfig;
 
@@ -98,7 +98,7 @@ public class AngularIOTalonFX implements AngularIO {
                                 config.getResetAngle().in(Radians)
                                         / config.getOutputAnglePerOutputRotation().in(Radians)));
         motionMagicVel = new MotionMagicVelocityVoltage(RotationsPerSecond.of(0.0));
-        dutyCycleOut = new DutyCycleOut(0.0);
+        voltageOut = new VoltageOut(0.0);
 
         // Set signals.
         position = master.getPosition();
@@ -251,9 +251,10 @@ public class AngularIOTalonFX implements AngularIO {
     }
 
     @Override
-    public void setOpenLoop(double dutyCycle) {
-        master.setControl(dutyCycleOut.withOutput(dutyCycle));
+    public void setOpenLoop(Voltage voltage) {
+        master.setControl(voltageOut.withOutput(voltage));
         goalPos = Optional.empty();
+        goalVel = Optional.empty();
         outputMode = kOpenLoop;
     }
 

@@ -33,7 +33,7 @@ public class AngularIOSim implements AngularIO {
     private AngularIOOutputMode outputMode = kNeutral;
     private Optional<Angle> goalPos = Optional.empty();
     private Optional<AngularVelocity> goalVel = Optional.empty();
-    private Optional<Double> dutyCycle = Optional.empty();
+    private Optional<Voltage> openLoopVolts = Optional.empty();
 
     private Current supplyCurrent = Amps.of(0.0);
 
@@ -99,7 +99,7 @@ public class AngularIOSim implements AngularIO {
                 }
             case kOpenLoop ->
                     inputs.appliedVolts =
-                            Volts.of(dutyCycle.orElse(0.0) * RobotController.getBatteryVoltage());
+                            Volts.of(MathUtil.clamp(openLoopVolts.orElse(Volts.of(0.0)).in(Volts), -12.0, 12.0));
             case kVelocity -> {
                     double goalVelValue = goalVel.orElse(RadiansPerSecond.of(0.0)).in(RadiansPerSecond);
                     inputs.appliedVolts = Volts.of(MathUtil.clamp(
@@ -138,7 +138,7 @@ public class AngularIOSim implements AngularIO {
     public void setAngle(Angle angle) {
         this.goalPos = Optional.of(angle);
         this.goalVel = Optional.empty();
-        this.dutyCycle = Optional.empty();
+        this.openLoopVolts = Optional.empty();
 
         posController.reset(pivot.getAngleRads(), velocity.in(RadiansPerSecond));
         outputMode = kClosedLoop;
@@ -148,22 +148,22 @@ public class AngularIOSim implements AngularIO {
     public void setVelocity(AngularVelocity angVel) {
         this.goalPos = Optional.empty();
         this.goalVel = Optional.of(angVel);
-        this.dutyCycle = Optional.empty();
+        this.openLoopVolts = Optional.empty();
         velController.reset(this.velocity.in(RadiansPerSecond));
         outputMode = kVelocity;
     }
 
     @Override
-    public void setOpenLoop(double dutyCycle) {
+    public void setOpenLoop(Voltage openLoopVoltage) {
         this.goalPos = Optional.empty();
         this.goalVel = Optional.empty();
-        this.dutyCycle = Optional.of(dutyCycle);
+        this.openLoopVolts = Optional.of(openLoopVoltage);
         outputMode = kOpenLoop;
     }
 
     @Override
     public void stop() {
-        setOpenLoop(0.0);
+        setOpenLoop(Volts.of(0.0));
         outputMode = kNeutral;
     }
 

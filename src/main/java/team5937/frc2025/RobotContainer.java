@@ -152,7 +152,7 @@ public class RobotContainer extends VirtualSubsystem {
                                                         .kP(0.11)
                                                         .kV(0.019)
                                                         .build());
-        flywheelSim.setDefaultCommand(flywheelSim.openLoop(0.0));
+        flywheelSim.setDefaultCommand(flywheelSim.openLoop(Volts.of(0.0)));
 
         pointToPoint = new PointToPoint(drive, () -> 0.0, field);
         pointToPointReef = new PointToPointReef(pointToPoint, drive);
