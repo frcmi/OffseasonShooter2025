@@ -29,7 +29,10 @@ import team5937.frc2025.constants.ModeConstants;
 import team5937.frc2025.constants.RobotConstants;
 import team5937.frc2025.constants.TunerConstants;
 import team5937.frc2025.constants.VisionConstants;
+import team5937.frc2025.constants.Intake.PivotConstants;
+import team5937.frc2025.constants.Intake.RollerConstants;
 import team5937.frc2025.subsystems.drive.*;
+import team5937.frc2025.subsystems.intake.Intake;
 import team5937.frc2025.subsystems.vision.Vision;
 import team5937.frc2025.subsystems.vision.VisionIO;
 import team5937.frc2025.subsystems.vision.VisionIOLimelight;
@@ -62,6 +65,7 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 public class RobotContainer extends VirtualSubsystem {
     private final Drive drive;
     private final Vision vision;
+    private final Intake intake;
 
     private final RobotSuperstructure superstructure;
 
@@ -110,6 +114,12 @@ public class RobotContainer extends VirtualSubsystem {
                         new VisionIOLimelight(camera0Name, drive::getRotation),
                         new VisionIOLimelight(camera1Name, drive::getRotation)
                 );
+                intake = new Intake(
+                        new AngularSubsystem(
+                                new AngularIOTalonFX(RollerConstants.kTalonFXConfig), RollerConstants.kSubsystemConfigReal), 
+                        new AngularSubsystem(
+                                new AngularIOTalonFX(PivotConstants.kTalonFXConfig), PivotConstants.kSubsystemConfigReal)
+                );
                 break;
 
             case kSim:
@@ -126,13 +136,19 @@ public class RobotContainer extends VirtualSubsystem {
                                 drive::addVisionMeasurement,
                                 new VisionIOPhotonVisionSim(camera0Name, robotToCamera0, drive::getPose),
                                 new VisionIOPhotonVisionSim(camera1Name, robotToCamera1, drive::getPose));
-
+                intake = new Intake(
+                        new AngularSubsystem(
+                                new AngularIOSim(RollerConstants.kSimConfig, currentDrawCalculatorSim), RollerConstants.kSubsystemConfigSim), 
+                        new AngularSubsystem(
+                                new AngularIOSim(PivotConstants.kSimConfig, currentDrawCalculatorSim), PivotConstants.kSubsystemConfigReal)
+                );
                 break;
 
             default:
                 // Replayed robot, disable IO implementations
                 drive = new Drive();
                 vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
+                intake = new Intake();
                 break;
         }
 
