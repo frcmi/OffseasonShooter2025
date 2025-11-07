@@ -7,10 +7,10 @@ package team5937.frc2025.constants.Intake;
 import static edu.wpi.first.units.Units.*;
 import static team5937.frc2025.constants.RobotConstants.kRioBus;
 
-import com.ctre.phoenix6.signals.InvertedValue;
-import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.units.measure.MomentOfInertia;
+
 import java.util.function.Supplier;
 import team5937.lib.subsystem.angular.AngularIOSimConfig;
 import team5937.lib.subsystem.angular.AngularIOTalonFXConfig;
@@ -22,9 +22,9 @@ public class RollerConstants {
 
     public static final AngularSubsystemConfig kSubsystemConfigReal =
             AngularSubsystemConfig.builder()
-                    .logKey("Pivot")
-                    .bus(kRioBus)
-                    .build();
+                .logKey("Roller")
+                .bus(kRioBus)
+                .build();
 
     public static final AngularIOTalonFXConfig kTalonFXConfig =
             AngularIOTalonFXConfig.builder()
@@ -39,10 +39,11 @@ public class RollerConstants {
                     .logKey(kSubsystemConfigReal.getLogKey())
                     .bus(kSubsystemConfigReal.getBus())
                     .build();
-
+    public static final MomentOfInertia kMOI = KilogramSquareMeters.of(0.242366 * 3 * 0.000292639653); // Converted from lb in^2 to kg m^2, multiply by 3 for 3 rollers
     public static final AngularIOSimConfig kSimConfig =
             AngularIOSimConfig.builder()
-                    .motor(DCMotor.getKrakenX60Foc(3))
+                    .motor(DCMotor.getKrakenX60(1))
+                    .moi(kMOI)
                     .build();
 }
 

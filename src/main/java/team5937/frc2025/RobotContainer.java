@@ -42,6 +42,7 @@ import team5937.lib.controller.Joysticks;
 import team5937.lib.sim.CurrentDrawCalculatorSim;
 import team5937.lib.sim.CustomDCMotor;
 import team5937.lib.subsystem.VirtualSubsystem;
+import team5937.lib.subsystem.angular.AngularIO;
 import team5937.lib.subsystem.angular.AngularIOSim;
 import team5937.lib.subsystem.angular.AngularIOSimConfig;
 import team5937.lib.subsystem.angular.AngularIOTalonFX;
@@ -96,8 +97,6 @@ public class RobotContainer extends VirtualSubsystem {
     private final Alert controllerOneAlert =
             new Alert("Controller 1 is unplugged!", Alert.AlertType.kWarning);
 
-    private final AngularSubsystem flywheelSim;
-
     public RobotContainer() {
         switch (ModeConstants.kCurrentMode) {
             case kReal:
@@ -136,11 +135,14 @@ public class RobotContainer extends VirtualSubsystem {
                                 drive::addVisionMeasurement,
                                 new VisionIOPhotonVisionSim(camera0Name, robotToCamera0, drive::getPose),
                                 new VisionIOPhotonVisionSim(camera1Name, robotToCamera1, drive::getPose));
+
+                AngularIOSim pivotIO = new AngularIOSim(PivotConstants.kSimConfig, currentDrawCalculatorSim);
+                pivotIO.setRealAngleFromSubsystemAngleZeroSupplier(PivotConstants.kRealAngleFromSubsystemAngleZeroSupplier);
                 intake = new Intake(
                         new AngularSubsystem(
                                 new AngularIOSim(RollerConstants.kSimConfig, currentDrawCalculatorSim), RollerConstants.kSubsystemConfigSim), 
                         new AngularSubsystem(
-                                new AngularIOSim(PivotConstants.kSimConfig, currentDrawCalculatorSim), PivotConstants.kSubsystemConfigReal)
+                                pivotIO, PivotConstants.kSubsystemConfigReal)
                 );
                 break;
 
@@ -152,23 +154,7 @@ public class RobotContainer extends VirtualSubsystem {
                 break;
         }
 
-        superstructure = new RobotSuperstructure();
-
-        AngularIOSim sim = new AngularIOSim(AngularIOSimConfig.builder()
-                                                        .motor(DCMotor.getKrakenX60(1))
-                                                        .moi(KilogramSquareMeters.of(0.0046))
-                                                        .kP(0.11)
-                                                        .kV(0.019)
-                                                        .build(), 
-                                                        currentDrawCalculatorSim);
-        flywheelSim = new AngularSubsystem(sim, AngularSubsystemConfig.builder()
-                                                        .logKey("Flywheel")
-                                                        .bus(new CANBus("can"))
-                                                        .acceleration(RadiansPerSecondPerSecond.of(300))
-                                                        .kP(0.11)
-                                                        .kV(0.019)
-                                                        .build());
-        flywheelSim.setDefaultCommand(flywheelSim.openLoop(Volts.of(0.0)));
+        superstructure = new RobotSuperstructure(intake);
 
         pointToPoint = new PointToPoint(drive, () -> 0.0, field);
         pointToPointReef = new PointToPointReef(pointToPoint, drive);
@@ -211,7 +197,8 @@ public class RobotContainer extends VirtualSubsystem {
                         () -> -controller.getLeftStickX(),
                         () -> -controller.getRightStickX()));
 
-        controller.buttonA.whileTrue(flywheelSim.velocity(RadiansPerSecond.of(300)));
+        controller.rightBumper.onTrue(superstructure.intakeDeploy());
+        controller.rightBumper.onFalse(superstructure.intakeStowed());
     }
 
     @Override

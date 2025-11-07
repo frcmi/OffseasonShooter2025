@@ -11,7 +11,12 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.units.measure.MomentOfInertia;
+
 import java.util.function.Supplier;
+
+import team5937.frc2025.subsystems.intake.IntakeState;
+import team5937.lib.sim.PivotSim;
 import team5937.lib.subsystem.angular.AngularIOSimConfig;
 import team5937.lib.subsystem.angular.AngularIOTalonFXConfig;
 import team5937.lib.subsystem.angular.AngularSubsystemConfig;
@@ -24,29 +29,26 @@ public class PivotConstants {
             AngularSubsystemConfig.builder()
                     .logKey("Pivot")
                     .bus(kRioBus)
-                    .positionTolerance(Degrees.of(1.0))
+                    .positionTolerance(Degrees.of(2.0))
                     .velocityTolerance(DegreesPerSecond.of(4.58))
                     .kP(5.0)
                     .kI(0.0)
                     .kD(0.0)
-                    .cruiseVelocity(DegreesPerSecond.of(1000.0))
-                    .acceleration(DegreesPerSecondPerSecond.of(600.0))
+                    .cruiseVelocity(DegreesPerSecond.of(2000.0))
+                    .acceleration(DegreesPerSecondPerSecond.of(4500.0))
                     .build();
 
     public static final AngularIOTalonFXConfig kTalonFXConfig =
             AngularIOTalonFXConfig.builder()
                     .masterId(32)
-                    .followerId(31)
-                    .followerId(30)
                     .bus(kRioBus)
-                    .opposeMaster(false)
-                    .resetAngle(Degrees.of(0.0))
-                    .softMinAngle(Degrees.of(0.0))
-                    .softMaxAngle(Degrees.of(120.0))
-                    .motorRotationsPerOutputRotations((60.0 / 12.0) * (60.0 / 16.0) * (58.0 / 9.0))
+                    .resetAngle(IntakeState.kStowed.getPivot())
+                    .softMinAngle(IntakeState.kIntaking.getPivot())
+                    .softMaxAngle(IntakeState.kStowed.getPivot())
+                    .motorRotationsPerOutputRotations((38.0/12.0) * (56.0/14.0) * (24.0/18.0) * (36.0/12.0)) // The reductions on the intake
                     .outputAnglePerOutputRotation(Rotations.of(1.0))
                     .inverted(InvertedValue.Clockwise_Positive)
-                    .supplyCurrentLimit(Amps.of(40.0))
+                    .supplyCurrentLimit(Amps.of(30.0))
                     .statorCurrentLimit(Amps.of(90.0))
                     .neutralMode(NeutralModeValue.Brake)
                     .kP(kSubsystemConfigReal.getKP())
@@ -69,15 +71,16 @@ public class PivotConstants {
                     .acceleration(kSubsystemConfigReal.getAcceleration())
                     .build();
 
+    public static final MomentOfInertia kMOI = KilogramSquareMeters.of(293.783602 * 0.000292639653); // Converted from lb in^2 to kg m^2
     public static final AngularIOSimConfig kSimConfig =
             AngularIOSimConfig.builder()
-                    .motor(DCMotor.getKrakenX60Foc(3))
+                    .motor(DCMotor.getKrakenX60(1))
+                    .moi(kMOI)
                     .resetAngle(kTalonFXConfig.getResetAngle())
-                    .physicalMinAngle(Degrees.of(0.0))
-                    .physicalMaxAngle(Degrees.of(140.0))
+                    .physicalMinAngle(IntakeState.kIntaking.getPivot())
+                    .physicalMaxAngle(IntakeState.kStowed.getPivot())
                     .motorRotationsPerOutputRotations(
                             kTalonFXConfig.getMotorRotationsPerOutputRotations())
-                    .outputAnglePerOutputRotation(kTalonFXConfig.getOutputAnglePerOutputRotation())
                     .neutralMode(kTalonFXConfig.getNeutralMode())
                     .kP(kSubsystemConfigSim.getKP())
                     .kI(kSubsystemConfigSim.getKI())
