@@ -20,6 +20,8 @@ import java.lang.StackWalker.Option;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import org.littletonrobotics.junction.Logger;
+
 public class AngularIOSim implements AngularIO {
     private final PivotSim pivot;
     private final ProfiledPIDController posController;
@@ -85,6 +87,9 @@ public class AngularIOSim implements AngularIO {
         Optional<AngularVelocity> velSet = Optional.empty();
         switch (outputMode) {
             case kClosedLoop -> {
+                    double a = pivot.getAngleRads();
+                    double targ = posController.getSetpoint().position;
+                    Logger.recordOutput("SKIBITEST", (targ - a) * posController.getP());
                     inputs.appliedVolts =
                             Volts.of(
                                     MathUtil.clamp(
@@ -140,7 +145,9 @@ public class AngularIOSim implements AngularIO {
         this.goalVel = Optional.empty();
         this.openLoopVolts = Optional.empty();
 
-        posController.reset(pivot.getAngleRads(), velocity.in(RadiansPerSecond));
+        if (outputMode != kClosedLoop) { // If the output mode was already closed loop, then the controller has been updated with the measured state
+            posController.reset(pivot.getAngleRads(), velocity.in(RadiansPerSecond));
+        }
         outputMode = kClosedLoop;
     }
 
@@ -149,7 +156,9 @@ public class AngularIOSim implements AngularIO {
         this.goalPos = Optional.empty();
         this.goalVel = Optional.of(angVel);
         this.openLoopVolts = Optional.empty();
-        velController.reset(this.velocity.in(RadiansPerSecond));
+        if (outputMode != kVelocity) {
+            velController.reset(this.velocity.in(RadiansPerSecond));
+        }
         outputMode = kVelocity;
     }
 
