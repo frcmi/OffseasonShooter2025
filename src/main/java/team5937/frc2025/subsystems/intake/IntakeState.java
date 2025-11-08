@@ -20,7 +20,7 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Voltage;
 
 /** Add your docs here. */
-public class IntakeState implements StructSerializable{
+public class IntakeState implements StructSerializable {
     @Setter private Angle pivot;
     @Setter private Voltage rollers;
     private final String type;

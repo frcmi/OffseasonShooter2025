@@ -76,7 +76,7 @@ public class LinearIOSim implements LinearIO {
                                     MathUtil.clamp(
                                             controller.calculate(
                                                             linearExtension.getPositionMeters(),
-                                                            goal.orElse(Meters.of(0.0)).in(Meters)) + deviceConfig.getKG(),
+                                                            goal.orElse(Meters.of(0.0)).in(Meters)) * RobotController.getBatteryVoltage() + deviceConfig.getKG(),
                                             -12.0,
                                             12.0));
             case kOpenLoop ->

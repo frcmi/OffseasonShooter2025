@@ -91,7 +91,7 @@ public class AngularIOSim implements AngularIO {
                                             posController.calculate(
                                                             pivot.getAngleRads(),
                                                             goalPos.orElse(Radians.of(0.0))
-                                                                    .in(Radians)),
+                                                                    .in(Radians)) * RobotController.getBatteryVoltage(),
                                             -12.0,
                                             12.0));
                     posSet = Optional.of(Radians.of(posController.getSetpoint().position));
