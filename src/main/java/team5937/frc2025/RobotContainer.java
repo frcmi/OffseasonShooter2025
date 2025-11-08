@@ -31,6 +31,7 @@ import team5937.frc2025.constants.TunerConstants;
 import team5937.frc2025.constants.VisionConstants;
 import team5937.frc2025.constants.Intake.PivotConstants;
 import team5937.frc2025.constants.Intake.RollerConstants;
+import team5937.frc2025.subsystems.SuperstructureVisualizer;
 import team5937.frc2025.subsystems.drive.*;
 import team5937.frc2025.subsystems.intake.Intake;
 import team5937.frc2025.subsystems.vision.Vision;
@@ -97,6 +98,12 @@ public class RobotContainer extends VirtualSubsystem {
     private final Alert controllerOneAlert =
             new Alert("Controller 1 is unplugged!", Alert.AlertType.kWarning);
 
+    @SuppressWarnings("FieldCanBeLocal")
+    private final SuperstructureVisualizer measuredSuperstructureState;
+
+    @SuppressWarnings("FieldCanBeLocal")
+    private final SuperstructureVisualizer targetSuperstructureState;
+
     public RobotContainer() {
         switch (ModeConstants.kCurrentMode) {
             case kReal:
@@ -156,6 +163,17 @@ public class RobotContainer extends VirtualSubsystem {
 
         superstructure = new RobotSuperstructure(intake);
 
+        measuredSuperstructureState =
+                new SuperstructureVisualizer(
+                        intake::getMeasuredState,
+                        "MeasuredStateMechanism",
+                        RobotConstants.kMeasuredStateColor);
+        targetSuperstructureState =
+                new SuperstructureVisualizer(
+                        intake::getTargetState,
+                        "TargetStateMechanism",
+                        RobotConstants.kTargetStateColor);
+
         pointToPoint = new PointToPoint(drive, () -> 0.0, field);
         pointToPointReef = new PointToPointReef(pointToPoint, drive);
         aimToReef = new AimToReef(drive);
@@ -197,8 +215,8 @@ public class RobotContainer extends VirtualSubsystem {
                         () -> -controller.getLeftStickX(),
                         () -> -controller.getRightStickX()));
 
-        controller.rightBumper.onTrue(superstructure.intakeDeploy());
-        controller.rightBumper.onFalse(superstructure.intakeStowed());
+        controller.buttonA.onTrue(superstructure.intakeDeploy());
+        controller.buttonA.onFalse(superstructure.intakeStowed());
     }
 
     @Override

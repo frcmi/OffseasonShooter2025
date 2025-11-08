@@ -11,6 +11,7 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.MomentOfInertia;
 
 import java.util.function.Supplier;
@@ -22,6 +23,7 @@ import team5937.lib.subsystem.angular.AngularIOTalonFXConfig;
 import team5937.lib.subsystem.angular.AngularSubsystemConfig;
 
 public class PivotConstants {
+    public static final Distance PivotLength = Inches.of(14.9);
     public static final Supplier<Rotation2d> kRealAngleFromSubsystemAngleZeroSupplier =
             () -> Rotation2d.kZero;
 
