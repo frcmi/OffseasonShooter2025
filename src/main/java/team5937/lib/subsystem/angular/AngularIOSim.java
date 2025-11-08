@@ -87,9 +87,6 @@ public class AngularIOSim implements AngularIO {
         Optional<AngularVelocity> velSet = Optional.empty();
         switch (outputMode) {
             case kClosedLoop -> {
-                    double a = pivot.getAngleRads();
-                    double targ = posController.getSetpoint().position;
-                    Logger.recordOutput("SKIBITEST", (targ - a) * posController.getP());
                     inputs.appliedVolts =
                             Volts.of(
                                     MathUtil.clamp(
