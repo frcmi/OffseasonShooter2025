@@ -31,7 +31,7 @@ public class Intake extends VirtualSubsystem {
   private final AngularSubsystem pivot;
 
   @Getter private IntakeState targetState = IntakeState.kStowed;
-  @Getter private IntakeState measuredState = targetState;
+  @Getter private IntakeState measuredState;
 
   /** Creates a new Intake. */
   public Intake() {
@@ -47,9 +47,9 @@ public class Intake extends VirtualSubsystem {
     this.pivot = pivot;
 
     pivot.setDefaultCommand(pivot.holdAtGoal(() -> getTargetState().getPivot()));
-    rollers.setDefaultCommand(rollers.openLoop(Volts.of(0)));
+    rollers.setDefaultCommand(rollers.openLoop(() -> getTargetState().getRollers()));
 
-    measuredState = targetState;
+    measuredState = new IntakeState(pivot.getAngle(), targetState.getRollers());
   }
 
   @Override

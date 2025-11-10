@@ -76,7 +76,7 @@ public class LinearIOSim implements LinearIO {
                                     MathUtil.clamp(
                                             controller.calculate(
                                                             linearExtension.getPositionMeters(),
-                                                            goal.orElse(Meters.of(0.0)).in(Meters)) + deviceConfig.getKG(),
+                                                            goal.orElse(Meters.of(0.0)).in(Meters)) * RobotController.getBatteryVoltage() + deviceConfig.getKG(),
                                             -12.0,
                                             12.0));
             case kOpenLoop ->
@@ -105,7 +105,9 @@ public class LinearIOSim implements LinearIO {
 
     @Override
     public void setLength(Distance length) {
-        controller.reset(linearExtension.getPositionMeters(), velocity.in(MetersPerSecond));
+        if (outputMode != kClosedLoop) { // If the output mode was already closed loop, then the controller has been updated with the measured state
+            controller.reset(linearExtension.getPositionMeters(), velocity.in(MetersPerSecond));
+        }
         this.goal = Optional.of(length);
         this.openLoopVolts = Optional.empty();
         outputMode = kClosedLoop;
