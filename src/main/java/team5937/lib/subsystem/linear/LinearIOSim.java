@@ -30,7 +30,7 @@ public class LinearIOSim implements LinearIO {
 
     private LinearIOOutputMode outputMode = kNeutral;
     private Optional<Distance> goal = Optional.empty();
-    private Optional<Double> dutyCycle = Optional.empty();
+    private Optional<Voltage> openLoopVolts = Optional.empty();
 
     private Current supplyCurrent = Amps.of(0.0);
 
@@ -80,8 +80,7 @@ public class LinearIOSim implements LinearIO {
                                             -12.0,
                                             12.0));
             case kOpenLoop ->
-                    inputs.appliedVolts =
-                            Volts.of(dutyCycle.orElse(0.0) * RobotController.getBatteryVoltage());
+            inputs.appliedVolts = Volts.of(MathUtil.clamp(openLoopVolts.orElse(Volts.of(0.0)).in(Volts), -12.0, 12.0));
             case kNeutral -> inputs.appliedVolts = Volts.of(0.0);
         }
         linearExtension.setInput(inputs.appliedVolts.in(Volts));
@@ -108,20 +107,20 @@ public class LinearIOSim implements LinearIO {
     public void setLength(Distance length) {
         controller.reset(linearExtension.getPositionMeters(), velocity.in(MetersPerSecond));
         this.goal = Optional.of(length);
-        this.dutyCycle = Optional.empty();
+        this.openLoopVolts = Optional.empty();
         outputMode = kClosedLoop;
     }
 
     @Override
-    public void setOpenLoop(double dutyCycle) {
+    public void setOpenLoop(Voltage openLoopVoltage) {
         this.goal = Optional.empty();
-        this.dutyCycle = Optional.of(dutyCycle);
+        this.openLoopVolts = Optional.of(openLoopVoltage);
         outputMode = kOpenLoop;
     }
 
     @Override
     public void stop() {
-        setOpenLoop(0.0);
+        setOpenLoop(Volts.of(0.0));
         outputMode = kNeutral;
     }
 

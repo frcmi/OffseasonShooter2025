@@ -182,17 +182,17 @@ public class LinearSubsystem extends RegisteredSubsystem {
         return parallel(run(() -> io.setLength(length.get())), setOutputMode(kClosedLoop));
     }
 
-    public Command openLoop(double dutyCycle) {
+    public Command openLoop(Voltage voltage) {
         // Only set duty cycle once, run until canceled.
         return parallel(
-                sequence(runOnce(() -> io.setOpenLoop(dutyCycle)), idle()),
+                sequence(runOnce(() -> io.setOpenLoop(voltage)), idle()),
                 setOutputMode(kOpenLoop));
     }
 
-    public Command openLoop(DoubleSupplier dutyCycle) {
+    public Command openLoop(Supplier<Voltage> voltage) {
         // Set duty cycle every loop, run until canceled.
         return parallel(
-                run(() -> io.setOpenLoop(dutyCycle.getAsDouble())), setOutputMode(kOpenLoop));
+                run(() -> io.setOpenLoop(voltage.get())), setOutputMode(kOpenLoop));
     }
 
     public Command stop() {

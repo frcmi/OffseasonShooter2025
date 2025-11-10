@@ -35,7 +35,7 @@ public interface LinearIO {
 
     default void setLength(Distance length) {}
 
-    default void setOpenLoop(double dutyCycle) {}
+    default void setOpenLoop(Voltage voltage) {}
 
     default void stop() {}
 

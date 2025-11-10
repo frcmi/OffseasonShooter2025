@@ -41,7 +41,7 @@ public class LinearIOTalonFX implements LinearIO {
     private final List<StatusSignal<Temperature>> motorTemperatures;
 
     private final MotionMagicVoltage motionMagic;
-    private final DutyCycleOut dutyCycleOut;
+    private final VoltageOut voltageOut;
 
     private final LinearIOTalonFXConfig deviceConfig;
 
@@ -96,7 +96,7 @@ public class LinearIOTalonFX implements LinearIO {
                         Rotations.of(
                                 config.getResetLength().in(Meters)
                                         / config.getOutputDistancePerOutputRotation().in(Meters)));
-        dutyCycleOut = new DutyCycleOut(0.0);
+        voltageOut = new VoltageOut(0.0);
 
         // Set signals.
         position = master.getPosition();
@@ -233,8 +233,8 @@ public class LinearIOTalonFX implements LinearIO {
     }
 
     @Override
-    public void setOpenLoop(double dutyCycle) {
-        master.setControl(dutyCycleOut.withOutput(dutyCycle));
+    public void setOpenLoop(Voltage voltage) {
+        master.setControl(voltageOut.withOutput(voltage));
         goal = Optional.empty();
         outputMode = kOpenLoop;
     }
