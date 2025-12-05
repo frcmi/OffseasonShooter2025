@@ -23,7 +23,7 @@ import java.util.Optional;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 import lombok.Getter;
-import team5937.frc2025.constants.TunerConstants;
+import team5937.frc2025.constants.TunerConstantsAlpha;
 import team5937.frc2025.subsystems.drive.Drive;
 import team5937.lib.LoggedTunableNumber;
 import team5937.lib.utils.GeomUtils;
@@ -334,13 +334,13 @@ public class PointToPoint {
         final double thetaS = MathUtil.clamp(Math.abs(omegaFF.getAsDouble()) * 3.0, 0.0, 1.0);
         driveVelocity =
                 driveVelocity.interpolate(
-                        linearFF.get().times(TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)),
+                        linearFF.get().times(TunerConstantsAlpha.kSpeedAt12Volts.in(MetersPerSecond)),
                         linearS);
         thetaVelocity =
                 MathUtil.interpolate(
                         thetaVelocity,
                         omegaFF.getAsDouble()
-                                * (TunerConstants.kSpeedAt12Volts.in(MetersPerSecond) / 15.0),
+                                * (TunerConstantsAlpha.kSpeedAt12Volts.in(MetersPerSecond) / 15.0),
                         thetaS);
         ChassisSpeeds fieldVelocity = drive.getFieldRelativeChassisSpeeds();
         Translation2d linearFieldVelocity =

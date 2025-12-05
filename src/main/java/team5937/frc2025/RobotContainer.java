@@ -27,7 +27,7 @@ import team5937.frc2025.commands.DriveCommands;
 import team5937.frc2025.commands.RobotSuperstructure;
 import team5937.frc2025.constants.ModeConstants;
 import team5937.frc2025.constants.RobotConstants;
-import team5937.frc2025.constants.TunerConstants;
+import team5937.frc2025.constants.TunerConstantsAlpha;
 import team5937.frc2025.constants.VisionConstants;
 import team5937.frc2025.constants.Intake.PivotConstants;
 import team5937.frc2025.constants.Intake.RollerConstants;
@@ -67,9 +67,9 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 public class RobotContainer extends VirtualSubsystem {
     private final Drive drive;
     private final Vision vision;
-    private final Intake intake;
+   // private final Intake intake;
 
-    private final RobotSuperstructure superstructure;
+    //private final RobotSuperstructure superstructure;
 
 
     private final PointToPoint pointToPoint;
@@ -98,11 +98,11 @@ public class RobotContainer extends VirtualSubsystem {
     private final Alert controllerOneAlert =
             new Alert("Controller 1 is unplugged!", Alert.AlertType.kWarning);
 
-    @SuppressWarnings("FieldCanBeLocal")
-    private final SuperstructureVisualizer measuredSuperstructureState;
+    //@SuppressWarnings("FieldCanBeLocal")
+    //private final SuperstructureVisualizer measuredSuperstructureState;
 
-    @SuppressWarnings("FieldCanBeLocal")
-    private final SuperstructureVisualizer targetSuperstructureState;
+    //@SuppressWarnings("FieldCanBeLocal")
+    //private final SuperstructureVisualizer targetSuperstructureState;
 
     public RobotContainer() {
         switch (ModeConstants.kCurrentMode) {
@@ -111,21 +111,21 @@ public class RobotContainer extends VirtualSubsystem {
                 drive =
                         new Drive(
                                 new GyroIOPigeon2(),
-                                new ModuleIOTalonFX(TunerConstants.FrontLeft),
-                                new ModuleIOTalonFX(TunerConstants.FrontRight),
-                                new ModuleIOTalonFX(TunerConstants.BackLeft),
-                                new ModuleIOTalonFX(TunerConstants.BackRight));
+                                new ModuleIOTalonFX(TunerConstantsAlpha.FrontLeft),
+                                new ModuleIOTalonFX(TunerConstantsAlpha.FrontRight),
+                                new ModuleIOTalonFX(TunerConstantsAlpha.BackLeft),
+                                new ModuleIOTalonFX(TunerConstantsAlpha.BackRight));
                 vision = new Vision(
                         drive::addVisionMeasurement,
                         new VisionIOLimelight(camera0Name, drive::getRotation),
                         new VisionIOLimelight(camera1Name, drive::getRotation)
                 );
-                intake = new Intake(
+                /*intake = new Intake(
                         new AngularSubsystem(
                                 new AngularIOTalonFX(RollerConstants.kTalonFXConfig), RollerConstants.kSubsystemConfigReal), 
                         new AngularSubsystem(
                                 new AngularIOTalonFX(PivotConstants.kTalonFXConfig), PivotConstants.kSubsystemConfigReal)
-                );
+                );*/
                 break;
 
             case kSim:
@@ -133,10 +133,10 @@ public class RobotContainer extends VirtualSubsystem {
                 drive =
                 new Drive(
                         new GyroIO() {},
-                        new ModuleIOSim(TunerConstants.FrontLeft, currentDrawCalculatorSim),
-                        new ModuleIOSim(TunerConstants.FrontRight, currentDrawCalculatorSim),
-                        new ModuleIOSim(TunerConstants.BackLeft, currentDrawCalculatorSim),
-                        new ModuleIOSim(TunerConstants.BackRight, currentDrawCalculatorSim));
+                        new ModuleIOSim(TunerConstantsAlpha.FrontLeft, currentDrawCalculatorSim),
+                        new ModuleIOSim(TunerConstantsAlpha.FrontRight, currentDrawCalculatorSim),
+                        new ModuleIOSim(TunerConstantsAlpha.BackLeft, currentDrawCalculatorSim),
+                        new ModuleIOSim(TunerConstantsAlpha.BackRight, currentDrawCalculatorSim));
                 vision =
                         new Vision(
                                 drive::addVisionMeasurement,
@@ -145,23 +145,23 @@ public class RobotContainer extends VirtualSubsystem {
 
                 AngularIOSim pivotIO = new AngularIOSim(PivotConstants.kSimConfig, currentDrawCalculatorSim);
                 pivotIO.setRealAngleFromSubsystemAngleZeroSupplier(PivotConstants.kRealAngleFromSubsystemAngleZeroSupplier);
-                intake = new Intake(
+                /*intake = new Intake(
                         new AngularSubsystem(
                                 new AngularIOSim(RollerConstants.kSimConfig, currentDrawCalculatorSim), RollerConstants.kSubsystemConfigSim), 
                         new AngularSubsystem(
                                 pivotIO, PivotConstants.kSubsystemConfigReal)
-                );
+                );*/
                 break;
 
             default:
                 // Replayed robot, disable IO implementations
                 drive = new Drive();
                 vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
-                intake = new Intake();
+                //intake = new Intake();
                 break;
         }
 
-        superstructure = new RobotSuperstructure(intake);
+        /*superstructure = new RobotSuperstructure(intake);
 
         measuredSuperstructureState =
                 new SuperstructureVisualizer(
@@ -172,7 +172,7 @@ public class RobotContainer extends VirtualSubsystem {
                 new SuperstructureVisualizer(
                         intake::getTargetState,
                         "TargetStateMechanism",
-                        RobotConstants.kTargetStateColor);
+                        RobotConstants.kTargetStateColor);*/
 
         pointToPoint = new PointToPoint(drive, () -> 0.0, field);
         pointToPointReef = new PointToPointReef(pointToPoint, drive);
@@ -215,8 +215,8 @@ public class RobotContainer extends VirtualSubsystem {
                         () -> -controller.getLeftStickX(),
                         () -> -controller.getRightStickX()));
 
-        controller.buttonA.onTrue(superstructure.intakeDeploy());
-        controller.buttonA.onFalse(superstructure.intakeStowed());
+        //controller.buttonA.onTrue(superstructure.intakeDeploy());
+        //controller.buttonA.onFalse(superstructure.intakeStowed());
     }
 
     @Override
