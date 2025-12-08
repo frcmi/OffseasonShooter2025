@@ -117,8 +117,8 @@ public class RobotContainer extends VirtualSubsystem {
                                 new ModuleIOTalonFX(TunerConstantsAlpha.BackRight));
                 vision = new Vision(
                         drive::addVisionMeasurement,
-                        new VisionIOLimelight(camera0Name, drive::getRotation),
-                        new VisionIOLimelight(camera1Name, drive::getRotation)
+                        new VisionIOLimelight(camera0Name, drive::getRotation)
+                        //new VisionIOLimelight(camera1Name, drive::getRotation)
                 );
                 /*intake = new Intake(
                         new AngularSubsystem(
@@ -140,8 +140,8 @@ public class RobotContainer extends VirtualSubsystem {
                 vision =
                         new Vision(
                                 drive::addVisionMeasurement,
-                                new VisionIOPhotonVisionSim(camera0Name, robotToCamera0, drive::getPose),
-                                new VisionIOPhotonVisionSim(camera1Name, robotToCamera1, drive::getPose));
+                                new VisionIOPhotonVisionSim(camera0Name, robotToCamera0, drive::getPose)/*,
+                                new VisionIOPhotonVisionSim(camera1Name, robotToCamera1, drive::getPose)*/);
 
                 AngularIOSim pivotIO = new AngularIOSim(PivotConstants.kSimConfig, currentDrawCalculatorSim);
                 pivotIO.setRealAngleFromSubsystemAngleZeroSupplier(PivotConstants.kRealAngleFromSubsystemAngleZeroSupplier);
@@ -156,7 +156,7 @@ public class RobotContainer extends VirtualSubsystem {
             default:
                 // Replayed robot, disable IO implementations
                 drive = new Drive();
-                vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
+                vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}/* , new VisionIO() {}*/);
                 //intake = new Intake();
                 break;
         }
