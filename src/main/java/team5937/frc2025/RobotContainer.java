@@ -67,9 +67,9 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 public class RobotContainer extends VirtualSubsystem {
     private final Drive drive;
     private final Vision vision;
-   // private final Intake intake;
+    private final Intake intake;
 
-    //private final RobotSuperstructure superstructure;
+    private final RobotSuperstructure superstructure;
 
 
     private final PointToPoint pointToPoint;
@@ -98,11 +98,11 @@ public class RobotContainer extends VirtualSubsystem {
     private final Alert controllerOneAlert =
             new Alert("Controller 1 is unplugged!", Alert.AlertType.kWarning);
 
-    //@SuppressWarnings("FieldCanBeLocal")
-    //private final SuperstructureVisualizer measuredSuperstructureState;
+    @SuppressWarnings("FieldCanBeLocal")
+    private final SuperstructureVisualizer measuredSuperstructureState;
 
-    //@SuppressWarnings("FieldCanBeLocal")
-    //private final SuperstructureVisualizer targetSuperstructureState;
+    @SuppressWarnings("FieldCanBeLocal")
+    private final SuperstructureVisualizer targetSuperstructureState;
 
     public RobotContainer() {
         switch (ModeConstants.kCurrentMode) {
@@ -120,12 +120,12 @@ public class RobotContainer extends VirtualSubsystem {
                         new VisionIOLimelight(camera0Name, drive::getRotation)
                         //new VisionIOLimelight(camera1Name, drive::getRotation)
                 );
-                /*intake = new Intake(
+                intake = new Intake(
                         new AngularSubsystem(
                                 new AngularIOTalonFX(RollerConstants.kTalonFXConfig), RollerConstants.kSubsystemConfigReal), 
                         new AngularSubsystem(
                                 new AngularIOTalonFX(PivotConstants.kTalonFXConfig), PivotConstants.kSubsystemConfigReal)
-                );*/
+                );
                 break;
 
             case kSim:
@@ -145,23 +145,24 @@ public class RobotContainer extends VirtualSubsystem {
 
                 AngularIOSim pivotIO = new AngularIOSim(PivotConstants.kSimConfig, currentDrawCalculatorSim);
                 pivotIO.setRealAngleFromSubsystemAngleZeroSupplier(PivotConstants.kRealAngleFromSubsystemAngleZeroSupplier);
-                /*intake = new Intake(
+                intake = new Intake(
                         new AngularSubsystem(
                                 new AngularIOSim(RollerConstants.kSimConfig, currentDrawCalculatorSim), RollerConstants.kSubsystemConfigSim), 
                         new AngularSubsystem(
                                 pivotIO, PivotConstants.kSubsystemConfigReal)
-                );*/
+                );
                 break;
 
             default:
                 // Replayed robot, disable IO implementations
                 drive = new Drive();
                 vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}/* , new VisionIO() {}*/);
-                //intake = new Intake();
+                intake = new Intake();
                 break;
         }
 
-        /*superstructure = new RobotSuperstructure(intake);
+        superstructure = new RobotSuperstructure(intake);
+        superstructure.registerAutoCommands();
 
         measuredSuperstructureState =
                 new SuperstructureVisualizer(
@@ -172,7 +173,7 @@ public class RobotContainer extends VirtualSubsystem {
                 new SuperstructureVisualizer(
                         intake::getTargetState,
                         "TargetStateMechanism",
-                        RobotConstants.kTargetStateColor);*/
+                        RobotConstants.kTargetStateColor);
 
         pointToPoint = new PointToPoint(drive, () -> 0.0, field);
         pointToPointReef = new PointToPointReef(pointToPoint, drive);
@@ -215,8 +216,8 @@ public class RobotContainer extends VirtualSubsystem {
                         () -> -controller.getLeftStickX(),
                         () -> -controller.getRightStickX()));
 
-        //controller.buttonA.onTrue(superstructure.intakeDeploy());
-        //controller.buttonA.onFalse(superstructure.intakeStowed());
+        controller.buttonA.onTrue(superstructure.intakeDeploy());
+        controller.buttonA.onFalse(superstructure.intakeStowed());
     }
 
     @Override
