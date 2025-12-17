@@ -8,7 +8,7 @@ import com.ctre.phoenix6.hardware.Pigeon2;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.*;
-import team5937.frc2025.constants.TunerConstants;
+import team5937.frc2025.constants.TunerConstantsAlpha;
 
 import java.util.Queue;
 
@@ -16,8 +16,8 @@ import java.util.Queue;
 public class GyroIOPigeon2 implements GyroIO {
     private final Pigeon2 pigeon =
             new Pigeon2(
-                    TunerConstants.DrivetrainConstants.Pigeon2Id,
-                    TunerConstants.DrivetrainConstants.CANBusName);
+                    TunerConstantsAlpha.DrivetrainConstants.Pigeon2Id,
+                    TunerConstantsAlpha.DrivetrainConstants.CANBusName);
     private final StatusSignal<Angle> yaw = pigeon.getYaw();
     private final Queue<Double> yawPositionQueue;
     private final Queue<Double> yawTimestampQueue;

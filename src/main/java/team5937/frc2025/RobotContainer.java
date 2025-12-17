@@ -27,7 +27,7 @@ import team5937.frc2025.commands.DriveCommands;
 import team5937.frc2025.commands.RobotSuperstructure;
 import team5937.frc2025.constants.ModeConstants;
 import team5937.frc2025.constants.RobotConstants;
-import team5937.frc2025.constants.TunerConstants;
+import team5937.frc2025.constants.TunerConstantsAlpha;
 import team5937.frc2025.constants.VisionConstants;
 import team5937.frc2025.constants.Intake.PivotConstants;
 import team5937.frc2025.constants.Intake.RollerConstants;
@@ -111,14 +111,14 @@ public class RobotContainer extends VirtualSubsystem {
                 drive =
                         new Drive(
                                 new GyroIOPigeon2(),
-                                new ModuleIOTalonFX(TunerConstants.FrontLeft),
-                                new ModuleIOTalonFX(TunerConstants.FrontRight),
-                                new ModuleIOTalonFX(TunerConstants.BackLeft),
-                                new ModuleIOTalonFX(TunerConstants.BackRight));
+                                new ModuleIOTalonFX(TunerConstantsAlpha.FrontLeft),
+                                new ModuleIOTalonFX(TunerConstantsAlpha.FrontRight),
+                                new ModuleIOTalonFX(TunerConstantsAlpha.BackLeft),
+                                new ModuleIOTalonFX(TunerConstantsAlpha.BackRight));
                 vision = new Vision(
                         drive::addVisionMeasurement,
-                        new VisionIOLimelight(camera0Name, drive::getRotation),
-                        new VisionIOLimelight(camera1Name, drive::getRotation)
+                        new VisionIOLimelight(camera0Name, drive::getRotation)
+                        //new VisionIOLimelight(camera1Name, drive::getRotation)
                 );
                 intake = new Intake(
                         new AngularSubsystem(
@@ -133,15 +133,15 @@ public class RobotContainer extends VirtualSubsystem {
                 drive =
                 new Drive(
                         new GyroIO() {},
-                        new ModuleIOSim(TunerConstants.FrontLeft, currentDrawCalculatorSim),
-                        new ModuleIOSim(TunerConstants.FrontRight, currentDrawCalculatorSim),
-                        new ModuleIOSim(TunerConstants.BackLeft, currentDrawCalculatorSim),
-                        new ModuleIOSim(TunerConstants.BackRight, currentDrawCalculatorSim));
+                        new ModuleIOSim(TunerConstantsAlpha.FrontLeft, currentDrawCalculatorSim),
+                        new ModuleIOSim(TunerConstantsAlpha.FrontRight, currentDrawCalculatorSim),
+                        new ModuleIOSim(TunerConstantsAlpha.BackLeft, currentDrawCalculatorSim),
+                        new ModuleIOSim(TunerConstantsAlpha.BackRight, currentDrawCalculatorSim));
                 vision =
                         new Vision(
                                 drive::addVisionMeasurement,
-                                new VisionIOPhotonVisionSim(camera0Name, robotToCamera0, drive::getPose),
-                                new VisionIOPhotonVisionSim(camera1Name, robotToCamera1, drive::getPose));
+                                new VisionIOPhotonVisionSim(camera0Name, robotToCamera0, drive::getPose)/*,
+                                new VisionIOPhotonVisionSim(camera1Name, robotToCamera1, drive::getPose)*/);
 
                 AngularIOSim pivotIO = new AngularIOSim(PivotConstants.kSimConfig, currentDrawCalculatorSim);
                 pivotIO.setRealAngleFromSubsystemAngleZeroSupplier(PivotConstants.kRealAngleFromSubsystemAngleZeroSupplier);
@@ -156,12 +156,13 @@ public class RobotContainer extends VirtualSubsystem {
             default:
                 // Replayed robot, disable IO implementations
                 drive = new Drive();
-                vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
+                vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}/* , new VisionIO() {}*/);
                 intake = new Intake();
                 break;
         }
 
         superstructure = new RobotSuperstructure(intake);
+        superstructure.registerAutoCommands();
 
         measuredSuperstructureState =
                 new SuperstructureVisualizer(

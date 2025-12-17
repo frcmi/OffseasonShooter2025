@@ -35,7 +35,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import team5937.frc2025.constants.ModeConstants;
-import team5937.frc2025.constants.TunerConstants;
+import team5937.frc2025.constants.TunerConstantsAlpha;
 import team5937.lib.LocalADStarAK;
 import team5937.lib.LoggedTunableNumber;
 
@@ -47,23 +47,23 @@ import org.littletonrobotics.junction.Logger;
 public class Drive extends SubsystemBase {
     // TunerConstants doesn't include these constants, so they are declared locally
     static final double ODOMETRY_FREQUENCY =
-            new CANBus(TunerConstants.DrivetrainConstants.CANBusName).isNetworkFD() ? 250.0 : 100.0;
+            new CANBus(TunerConstantsAlpha.DrivetrainConstants.CANBusName).isNetworkFD() ? 250.0 : 100.0;
     public static final double DRIVE_BASE_RADIUS =
             Math.max(
                     Math.max(
                             Math.hypot(
-                                    TunerConstants.FrontLeft.LocationX,
-                                    TunerConstants.FrontLeft.LocationY),
+                                    TunerConstantsAlpha.FrontLeft.LocationX,
+                                    TunerConstantsAlpha.FrontLeft.LocationY),
                             Math.hypot(
-                                    TunerConstants.FrontRight.LocationX,
-                                    TunerConstants.FrontRight.LocationY)),
+                                    TunerConstantsAlpha.FrontRight.LocationX,
+                                    TunerConstantsAlpha.FrontRight.LocationY)),
                     Math.max(
                             Math.hypot(
-                                    TunerConstants.BackLeft.LocationX,
-                                    TunerConstants.BackLeft.LocationY),
+                                    TunerConstantsAlpha.BackLeft.LocationX,
+                                    TunerConstantsAlpha.BackLeft.LocationY),
                             Math.hypot(
-                                    TunerConstants.BackRight.LocationX,
-                                    TunerConstants.BackRight.LocationY)));
+                                    TunerConstantsAlpha.BackRight.LocationX,
+                                    TunerConstantsAlpha.BackRight.LocationY)));
 
     // PathPlanner config constants
     private static final double ROBOT_MASS_KG = 74.088;
@@ -74,12 +74,12 @@ public class Drive extends SubsystemBase {
                     ROBOT_MASS_KG,
                     ROBOT_MOI,
                     new ModuleConfig(
-                            TunerConstants.FrontLeft.WheelRadius,
-                            TunerConstants.kSpeedAt12Volts.in(MetersPerSecond),
+                            TunerConstantsAlpha.FrontLeft.WheelRadius,
+                            TunerConstantsAlpha.kSpeedAt12Volts.in(MetersPerSecond),
                             WHEEL_COF,
                             DCMotor.getKrakenX60Foc(1)
-                                    .withReduction(TunerConstants.FrontLeft.DriveMotorGearRatio),
-                            TunerConstants.FrontLeft.SlipCurrent,
+                                    .withReduction(TunerConstantsAlpha.FrontLeft.DriveMotorGearRatio),
+                            TunerConstantsAlpha.FrontLeft.SlipCurrent,
                             1),
                     getModuleTranslations());
 
@@ -124,10 +124,10 @@ public class Drive extends SubsystemBase {
             ModuleIO blModuleIO,
             ModuleIO brModuleIO) {
         this.gyroIO = gyroIO;
-        modules[0] = new Module(flModuleIO, 0, TunerConstants.FrontLeft);
-        modules[1] = new Module(frModuleIO, 1, TunerConstants.FrontRight);
-        modules[2] = new Module(blModuleIO, 2, TunerConstants.BackLeft);
-        modules[3] = new Module(brModuleIO, 3, TunerConstants.BackRight);
+        modules[0] = new Module(flModuleIO, 0, TunerConstantsAlpha.FrontLeft);
+        modules[1] = new Module(frModuleIO, 1, TunerConstantsAlpha.FrontRight);
+        modules[2] = new Module(blModuleIO, 2, TunerConstantsAlpha.BackLeft);
+        modules[3] = new Module(brModuleIO, 3, TunerConstantsAlpha.BackRight);
 
         // Usage reporting for swerve template
         HAL.report(
@@ -250,7 +250,7 @@ public class Drive extends SubsystemBase {
         // Calculate module setpoints
         ChassisSpeeds discreteSpeeds = ChassisSpeeds.discretize(speeds, 0.02);
         SwerveModuleState[] setpointStates = kinematics.toSwerveModuleStates(discreteSpeeds);
-        SwerveDriveKinematics.desaturateWheelSpeeds(setpointStates, TunerConstants.kSpeedAt12Volts);
+        SwerveDriveKinematics.desaturateWheelSpeeds(setpointStates, TunerConstantsAlpha.kSpeedAt12Volts);
 
         // Log unoptimized setpoints and setpoint speeds
         Logger.recordOutput("Drive/SwerveStates/Setpoints", setpointStates);
@@ -385,7 +385,7 @@ public class Drive extends SubsystemBase {
 
     /** Returns the maximum linear speed in meters per sec. */
     public double getMaxLinearSpeedMetersPerSec() {
-        return TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
+        return TunerConstantsAlpha.kSpeedAt12Volts.in(MetersPerSecond);
     }
 
     /** Returns the maximum angular speed in radians per sec. */
@@ -397,12 +397,12 @@ public class Drive extends SubsystemBase {
     public static Translation2d[] getModuleTranslations() {
         return new Translation2d[] {
             new Translation2d(
-                    TunerConstants.FrontLeft.LocationX, TunerConstants.FrontLeft.LocationY),
+                    TunerConstantsAlpha.FrontLeft.LocationX, TunerConstantsAlpha.FrontLeft.LocationY),
             new Translation2d(
-                    TunerConstants.FrontRight.LocationX, TunerConstants.FrontRight.LocationY),
-            new Translation2d(TunerConstants.BackLeft.LocationX, TunerConstants.BackLeft.LocationY),
+                    TunerConstantsAlpha.FrontRight.LocationX, TunerConstantsAlpha.FrontRight.LocationY),
+            new Translation2d(TunerConstantsAlpha.BackLeft.LocationX, TunerConstantsAlpha.BackLeft.LocationY),
             new Translation2d(
-                    TunerConstants.BackRight.LocationX, TunerConstants.BackRight.LocationY)
+                    TunerConstantsAlpha.BackRight.LocationX, TunerConstantsAlpha.BackRight.LocationY)
         };
     }
 }

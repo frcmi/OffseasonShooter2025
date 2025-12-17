@@ -17,7 +17,7 @@ import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.*;
-import team5937.frc2025.constants.TunerConstants;
+import team5937.frc2025.constants.TunerConstantsAlpha;
 
 import static team5937.lib.utils.PhoenixUtils.tryUntilOk;
 
@@ -79,10 +79,10 @@ public class ModuleIOTalonFX implements ModuleIO {
                     constants) {
         this.constants = constants;
         driveTalon =
-                new TalonFX(constants.DriveMotorId, TunerConstants.DrivetrainConstants.CANBusName);
+                new TalonFX(constants.DriveMotorId, TunerConstantsAlpha.DrivetrainConstants.CANBusName);
         turnTalon =
-                new TalonFX(constants.SteerMotorId, TunerConstants.DrivetrainConstants.CANBusName);
-        cancoder = new CANcoder(constants.EncoderId, TunerConstants.DrivetrainConstants.CANBusName);
+                new TalonFX(constants.SteerMotorId, TunerConstantsAlpha.DrivetrainConstants.CANBusName);
+        cancoder = new CANcoder(constants.EncoderId, TunerConstantsAlpha.DrivetrainConstants.CANBusName);
 
         // Configure drive motor
         var driveConfig = constants.DriveMotorInitialConfigs;
