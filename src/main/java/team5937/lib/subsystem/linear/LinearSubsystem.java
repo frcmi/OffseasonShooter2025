@@ -58,7 +58,7 @@ public class LinearSubsystem extends RegisteredSubsystem {
         setTunable();
 
         io.setLogKey(logKey);
-
+        resetLength();
         setDefaultCommand(holdAtCall());
     }
 

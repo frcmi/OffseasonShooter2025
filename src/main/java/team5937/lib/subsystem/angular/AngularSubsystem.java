@@ -2,7 +2,6 @@ package team5937.lib.subsystem.angular;
 
 import static edu.wpi.first.units.Units.*;
 import static edu.wpi.first.wpilibj2.command.Commands.*;
-import static edu.wpi.first.wpilibj2.command.Commands.idle;
 import static team5937.lib.subsystem.angular.AngularSubsystemOutputMode.*;
 
 import com.ctre.phoenix6.signals.NeutralModeValue;
@@ -59,7 +58,7 @@ public class AngularSubsystem extends RegisteredSubsystem {
         setTunable();
 
         io.setLogKey(logKey);
-
+        resetAngle();
         setDefaultCommand(holdAtCall());
     }
 
