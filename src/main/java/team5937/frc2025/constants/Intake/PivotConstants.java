@@ -42,7 +42,7 @@ public class PivotConstants {
 
     public static final AngularIOTalonFXConfig kTalonFXConfig =
             AngularIOTalonFXConfig.builder()
-                    .masterId(32)
+                    .masterId(9)
                     .bus(kRioBus)
                     .resetAngle(IntakeState.kStowed.getPivot())
                     .softMinAngle(IntakeState.kIntaking.getPivot())

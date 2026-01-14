@@ -120,11 +120,13 @@ public class RobotContainer extends VirtualSubsystem {
                         new VisionIOLimelight(camera0Name, drive::getRotation)
                         //new VisionIOLimelight(camera1Name, drive::getRotation)
                 );
+                AngularIOSim pivotIO = new AngularIOSim(PivotConstants.kSimConfig, currentDrawCalculatorSim);
+                pivotIO.setRealAngleFromSubsystemAngleZeroSupplier(PivotConstants.kRealAngleFromSubsystemAngleZeroSupplier);
                 intake = new Intake(
                         new AngularSubsystem(
-                                new AngularIOTalonFX(RollerConstants.kTalonFXConfig), RollerConstants.kSubsystemConfigReal), 
+                                new AngularIOSim(RollerConstants.kSimConfig, currentDrawCalculatorSim), RollerConstants.kSubsystemConfigSim), 
                         new AngularSubsystem(
-                                new AngularIOTalonFX(PivotConstants.kTalonFXConfig), PivotConstants.kSubsystemConfigReal)
+                                pivotIO, PivotConstants.kSubsystemConfigReal)
                 );
                 break;
 
@@ -143,13 +145,13 @@ public class RobotContainer extends VirtualSubsystem {
                                 new VisionIOPhotonVisionSim(camera0Name, robotToCamera0, drive::getPose)/*,
                                 new VisionIOPhotonVisionSim(camera1Name, robotToCamera1, drive::getPose)*/);
 
-                AngularIOSim pivotIO = new AngularIOSim(PivotConstants.kSimConfig, currentDrawCalculatorSim);
-                pivotIO.setRealAngleFromSubsystemAngleZeroSupplier(PivotConstants.kRealAngleFromSubsystemAngleZeroSupplier);
+                AngularIOSim pivot1IO = new AngularIOSim(PivotConstants.kSimConfig, currentDrawCalculatorSim);
+                pivot1IO.setRealAngleFromSubsystemAngleZeroSupplier(PivotConstants.kRealAngleFromSubsystemAngleZeroSupplier);
                 intake = new Intake(
                         new AngularSubsystem(
                                 new AngularIOSim(RollerConstants.kSimConfig, currentDrawCalculatorSim), RollerConstants.kSubsystemConfigSim), 
                         new AngularSubsystem(
-                                pivotIO, PivotConstants.kSubsystemConfigReal)
+                                pivot1IO, PivotConstants.kSubsystemConfigReal)
                 );
                 break;
 
